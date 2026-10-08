@@ -1,0 +1,2322 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Meu Financeiro</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* =========================================================
+           RESET E VARIÁVEIS
+        ========================================================= */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #eef2ff;
+
+            --success: #10b981;
+            --success-light: #ecfdf5;
+
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+
+            --warning: #f59e0b;
+
+            --background: #f5f7fb;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --text-light: #9ca3af;
+
+            --shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           LAYOUT PRINCIPAL
+        ========================================================= */
+
+        .app {
+            min-height: 100vh;
+        }
+
+        .container {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+
+            display: grid;
+            place-items: center;
+
+            background: linear-gradient(
+                135deg,
+                var(--primary),
+                #8b5cf6
+            );
+
+            color: white;
+            font-size: 22px;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .brand p {
+            margin-top: 2px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .date-now {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           MAIN
+        ========================================================= */
+
+        main {
+            padding: 32px 0 50px;
+        }
+
+        .page-title {
+            margin-bottom: 24px;
+        }
+
+        .page-title h2 {
+            font-size: clamp(24px, 3vw, 32px);
+            letter-spacing: -0.8px;
+        }
+
+        .page-title p {
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           CARDS DE RESUMO
+        ========================================================= */
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: var(--shadow);
+
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::after {
+            content: "";
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            right: -30px;
+            top: -35px;
+            opacity: 0.07;
+        }
+
+        .summary-card.balance::after {
+            background: var(--primary);
+        }
+
+        .summary-card.income::after {
+            background: var(--success);
+        }
+
+        .summary-card.expense::after {
+            background: var(--danger);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+
+            display: grid;
+            place-items: center;
+
+            font-size: 18px;
+        }
+
+        .balance .card-icon {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .income .card-icon {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .expense .card-icon {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .card-value {
+            margin-top: 14px;
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: -0.7px;
+        }
+
+        .balance .card-value {
+            color: var(--primary);
+        }
+
+        .income .card-value {
+            color: var(--success);
+        }
+
+        .expense .card-value {
+            color: var(--danger);
+        }
+
+        /* =========================================================
+           GRID DO FORMULÁRIO + GRÁFICO
+        ========================================================= */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .panel-header h3 {
+            font-size: 16px;
+            font-weight: 750;
+        }
+
+        .panel-header p {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .panel-body {
+            padding: 22px;
+        }
+
+        /* =========================================================
+           FORMULÁRIO
+        ========================================================= */
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+
+            font-size: 13px;
+            font-weight: 650;
+            color: #374151;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 44px;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+
+            padding: 0 13px;
+
+            background: #fff;
+            color: var(--text);
+
+            outline: none;
+
+            transition:
+                border-color 0.2s,
+                box-shadow 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .type-option {
+            position: relative;
+        }
+
+        .type-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .type-option label {
+            margin: 0;
+
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 650;
+
+            color: var(--text-secondary);
+
+            transition: 0.2s;
+        }
+
+        .type-option input:checked + label.entry {
+            border-color: var(--success);
+            background: var(--success-light);
+            color: #047857;
+        }
+
+        .type-option input:checked + label.expense {
+            border-color: var(--danger);
+            background: var(--danger-light);
+            color: #b91c1c;
+        }
+
+        .btn-primary {
+            width: 100%;
+            height: 46px;
+
+            border: 0;
+            border-radius: 10px;
+
+            background: linear-gradient(
+                135deg,
+                var(--primary),
+                var(--primary-dark)
+            );
+
+            color: white;
+
+            font-weight: 700;
+            font-size: 14px;
+
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.20);
+
+            transition:
+                transform 0.15s,
+                box-shadow 0.15s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.28);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* =========================================================
+           GRÁFICOS
+        ========================================================= */
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* =========================================================
+           TRANSAÇÕES
+        ========================================================= */
+
+        .transactions-panel {
+            margin-bottom: 24px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filters input,
+        .filters select {
+            height: 38px;
+            width: auto;
+        }
+
+        .search-input {
+            min-width: 220px;
+        }
+
+        .transactions-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .transactions-table th {
+            text-align: left;
+            padding: 14px 22px;
+
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            background: #fafafa;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transactions-table td {
+            padding: 15px 22px;
+            border-bottom: 1px solid #f0f1f3;
+
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .transactions-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .description {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .category {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 5px 9px;
+
+            border-radius: 999px;
+
+            background: #f3f4f6;
+            color: #4b5563;
+
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .transaction-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .transaction-type.entry {
+            color: var(--success);
+        }
+
+        .transaction-type.expense {
+            color: var(--danger);
+        }
+
+        .transaction-value {
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .transaction-value.entry {
+            color: var(--success);
+        }
+
+        .transaction-value.expense {
+            color: var(--danger);
+        }
+
+        .delete-btn {
+            width: 32px;
+            height: 32px;
+
+            border: 0;
+            border-radius: 8px;
+
+            background: #f9fafb;
+            color: #9ca3af;
+
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 45px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        /* =========================================================
+           TOAST
+        ========================================================= */
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+
+            background: #111827;
+            color: white;
+
+            padding: 13px 17px;
+            border-radius: 10px;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+
+            transform: translateY(100px);
+            opacity: 0;
+            pointer-events: none;
+
+            transition: 0.3s;
+
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* =========================================================
+           RESPONSIVIDADE
+        ========================================================= */
+
+        @media (max-width: 1000px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .container {
+                width: min(100% - 24px, 1400px);
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                padding: 12px 0;
+            }
+
+            .date-now {
+                display: none;
+            }
+
+            main {
+                padding-top: 22px;
+            }
+
+            .filters {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filters input,
+            .filters select {
+                width: 100%;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .card-value {
+                font-size: 23px;
+            }
+
+            .brand p {
+                display: none;
+            }
+
+            .panel-body {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
+    <header>
+        <div class="container header-content">
+
+            <div class="brand">
+                <div class="brand-icon">💰</div>
+
+                <div>
+                    <h1>Meu Financeiro</h1>
+                    <p>Controle simples das suas finanças</p>
+                </div>
+            </div>
+
+            <div class="date-now" id="currentDate"></div>
+
+        </div>
+    </header>
+
+
+    <!-- =========================================================
+         CONTEÚDO
+    ========================================================== -->
+    <main>
+
+        <div class="container">
+
+            <div class="page-title">
+                <h2>Visão geral</h2>
+                <p>Acompanhe suas receitas, despesas e saldo atual.</p>
+            </div>
+
+
+            <!-- =====================================================
+                 CARDS
+            ====================================================== -->
+            <section class="summary-grid">
+
+                <article class="summary-card balance">
+
+                    <div class="card-top">
+                        <span class="card-label">Total disponível</span>
+                        <div class="card-icon">💳</div>
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="balanceValue"
+                    >
+                        R$ 0,00
+                    </div>
+
+                </article>
+
+
+                <article class="summary-card income">
+
+                    <div class="card-top">
+                        <span class="card-label">Total de entradas</span>
+                        <div class="card-icon">↗</div>
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="incomeValue"
+                    >
+                        R$ 0,00
+                    </div>
+
+                </article>
+
+
+                <article class="summary-card expense">
+
+                    <div class="card-top">
+                        <span class="card-label">Total de saídas</span>
+                        <div class="card-icon">↘</div>
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="expenseValue"
+                    >
+                        R$ 0,00
+                    </div>
+
+                </article>
+
+            </section>
+
+
+            <!-- =====================================================
+                 FORMULÁRIO + GRÁFICO
+            ====================================================== -->
+            <section class="dashboard-grid">
+
+                <!-- FORMULÁRIO -->
+                <article class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Nova transação</h3>
+                            <p>Adicione uma receita ou despesa.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="panel-body">
+
+                        <form id="transactionForm">
+
+                            <div class="form-group">
+
+                                <label for="description">
+                                    Descrição
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="description"
+                                    placeholder="Ex: Salário, Mercado..."
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="two-columns">
+
+                                <div class="form-group">
+
+                                    <label for="amount">
+                                        Valor
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        id="amount"
+                                        min="0.01"
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        required
+                                    >
+
+                                </div>
+
+
+                                <div class="form-group">
+
+                                    <label for="date">
+                                        Data
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        id="date"
+                                        required
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>Tipo</label>
+
+                                <div class="type-selector">
+
+                                    <div class="type-option">
+
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            id="entry"
+                                            value="entry"
+                                            checked
+                                        >
+
+                                        <label
+                                            for="entry"
+                                            class="entry"
+                                        >
+                                            ↗ Entrada
+                                        </label>
+
+                                    </div>
+
+
+                                    <div class="type-option">
+
+                                        <input
+                                            type="radio"
+                                            name="type"
+                                            id="expense"
+                                            value="expense"
+                                        >
+
+                                        <label
+                                            for="expense"
+                                            class="expense"
+                                        >
+                                            ↘ Saída
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="category">
+                                    Categoria
+                                </label>
+
+                                <select id="category" required>
+
+                                    <option value="">
+                                        Selecione uma categoria
+                                    </option>
+
+                                    <option value="Alimentação">
+                                        Alimentação
+                                    </option>
+
+                                    <option value="Moradia">
+                                        Moradia
+                                    </option>
+
+                                    <option value="Transporte">
+                                        Transporte
+                                    </option>
+
+                                    <option value="Lazer">
+                                        Lazer
+                                    </option>
+
+                                    <option value="Salário">
+                                        Salário
+                                    </option>
+
+                                    <option value="Investimentos">
+                                        Investimentos
+                                    </option>
+
+                                    <option value="Saúde">
+                                        Saúde
+                                    </option>
+
+                                    <option value="Educação">
+                                        Educação
+                                    </option>
+
+                                    <option value="Outros">
+                                        Outros
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="btn-primary"
+                            >
+                                + Adicionar transação
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </article>
+
+
+                <!-- GRÁFICO DE BARRAS -->
+                <article class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Entradas x Saídas</h3>
+                            <p>Comparativo financeiro</p>
+                        </div>
+
+                    </div>
+
+                    <div class="panel-body">
+
+                        <div class="chart-container">
+                            <canvas id="incomeExpenseChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+
+            <!-- =====================================================
+                 TRANSAÇÕES
+            ====================================================== -->
+            <section class="panel transactions-panel">
+
+                <div class="panel-header">
+
+                    <div>
+                        <h3>Transações</h3>
+                        <p id="transactionCount">
+                            0 transações
+                        </p>
+                    </div>
+
+
+                    <div class="filters">
+
+                        <input
+                            type="search"
+                            id="searchInput"
+                            class="search-input"
+                            placeholder="Pesquisar..."
+                        >
+
+                        <select id="filterCategory">
+
+                            <option value="all">
+                                Todas as categorias
+                            </option>
+
+                            <option value="Alimentação">
+                                Alimentação
+                            </option>
+
+                            <option value="Moradia">
+                                Moradia
+                            </option>
+
+                            <option value="Transporte">
+                                Transporte
+                            </option>
+
+                            <option value="Lazer">
+                                Lazer
+                            </option>
+
+                            <option value="Salário">
+                                Salário
+                            </option>
+
+                            <option value="Investimentos">
+                                Investimentos
+                            </option>
+
+                            <option value="Saúde">
+                                Saúde
+                            </option>
+
+                            <option value="Educação">
+                                Educação
+                            </option>
+
+                            <option value="Outros">
+                                Outros
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="transactions-table-wrapper"
+                    id="transactionsContainer"
+                >
+
+                    <!-- Renderizado pelo JavaScript -->
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 GRÁFICO DE CATEGORIAS
+            ====================================================== -->
+            <section class="charts-grid">
+
+                <article class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Despesas por categoria</h3>
+                            <p>Distribuição dos seus gastos</p>
+                        </div>
+
+                    </div>
+
+                    <div class="panel-body">
+
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <article class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+                            <h3>Resumo</h3>
+                            <p>Visão rápida do seu orçamento</p>
+                        </div>
+
+                    </div>
+
+                    <div class="panel-body">
+
+                        <div
+                            id="summaryMessage"
+                            style="
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                height:300px;
+                                text-align:center;
+                                color:#6b7280;
+                                font-size:14px;
+                                line-height:1.6;
+                            "
+                        >
+                            Adicione algumas transações para
+                            visualizar seu resumo financeiro.
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- TOAST -->
+<div
+    class="toast"
+    id="toast"
+></div>
+
+
+<script>
+    /* =============================================================
+       CONFIGURAÇÃO
+    ============================================================= */
+
+    const STORAGE_KEY = "meuFinanceiro_transacoes";
+
+    const currencyFormatter = new Intl.NumberFormat(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
+    );
+
+
+    /* =============================================================
+       ESTADO DA APLICAÇÃO
+    ============================================================= */
+
+    let transactions = loadTransactions();
+
+    let incomeExpenseChart = null;
+    let categoryChart = null;
+
+
+    /* =============================================================
+       ELEMENTOS
+    ============================================================= */
+
+    const form = document.getElementById("transactionForm");
+
+    const descriptionInput =
+        document.getElementById("description");
+
+    const amountInput =
+        document.getElementById("amount");
+
+    const dateInput =
+        document.getElementById("date");
+
+    const categoryInput =
+        document.getElementById("category");
+
+    const searchInput =
+        document.getElementById("searchInput");
+
+    const filterCategory =
+        document.getElementById("filterCategory");
+
+    const transactionsContainer =
+        document.getElementById("transactionsContainer");
+
+
+    /* =============================================================
+       INICIALIZAÇÃO
+    ============================================================= */
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // Coloca a data atual automaticamente no formulário
+        dateInput.value = getTodayISO();
+
+        updateCurrentDate();
+
+        renderAll();
+
+    });
+
+
+    /* =============================================================
+       EVENTOS
+    ============================================================= */
+
+    form.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+        addTransaction();
+
+    });
+
+
+    searchInput.addEventListener("input", renderTransactions);
+
+    filterCategory.addEventListener(
+        "change",
+        renderTransactions
+    );
+
+
+    /* =============================================================
+       ADICIONAR TRANSAÇÃO
+    ============================================================= */
+
+    function addTransaction() {
+
+        const description =
+            descriptionInput.value.trim();
+
+        const amount =
+            Number(amountInput.value);
+
+        const type =
+            document.querySelector(
+                'input[name="type"]:checked'
+            ).value;
+
+        const category =
+            categoryInput.value;
+
+        const date =
+            dateInput.value;
+
+
+        // Validação
+        if (!description) {
+            showToast("Digite uma descrição.");
+            descriptionInput.focus();
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            showToast("Digite um valor válido.");
+            amountInput.focus();
+            return;
+        }
+
+        if (!category) {
+            showToast("Selecione uma categoria.");
+            categoryInput.focus();
+            return;
+        }
+
+        if (!date) {
+            showToast("Selecione uma data.");
+            dateInput.focus();
+            return;
+        }
+
+
+        // Criação da transação
+        const transaction = {
+
+            id:
+                Date.now().toString() +
+                Math.random().toString(16).slice(2),
+
+            description,
+
+            amount,
+
+            type,
+
+            category,
+
+            date
+
+        };
+
+
+        transactions.unshift(transaction);
+
+        saveTransactions();
+
+        renderAll();
+
+        // Limpa formulário
+        form.reset();
+
+        document.getElementById("entry").checked = true;
+
+        dateInput.value = getTodayISO();
+
+        showToast("Transação adicionada com sucesso!");
+
+
+        // Retorna o foco para descrição
+        descriptionInput.focus();
+
+    }
+
+
+    /* =============================================================
+       EXCLUIR TRANSAÇÃO
+    ============================================================= */
+
+    function deleteTransaction(id) {
+
+        const transaction =
+            transactions.find(
+                transaction => transaction.id === id
+            );
+
+        if (!transaction) {
+            return;
+        }
+
+
+        const confirmed = confirm(
+            `Deseja excluir "${transaction.description}"?`
+        );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        transactions =
+            transactions.filter(
+                transaction => transaction.id !== id
+            );
+
+
+        saveTransactions();
+
+        renderAll();
+
+        showToast("Transação excluída.");
+
+    }
+
+
+    /* =============================================================
+       RENDERIZAÇÃO GERAL
+    ============================================================= */
+
+    function renderAll() {
+
+        updateSummary();
+
+        renderTransactions();
+
+        renderCharts();
+
+        updateSummaryMessage();
+
+    }
+
+
+    /* =============================================================
+       RESUMO FINANCEIRO
+    ============================================================= */
+
+    function updateSummary() {
+
+        let income = 0;
+        let expense = 0;
+
+
+        transactions.forEach(transaction => {
+
+            if (transaction.type === "entry") {
+
+                income += Number(transaction.amount);
+
+            } else {
+
+                expense += Number(transaction.amount);
+
+            }
+
+        });
+
+
+        const balance =
+            income - expense;
+
+
+        document.getElementById("incomeValue")
+            .textContent =
+            formatCurrency(income);
+
+
+        document.getElementById("expenseValue")
+            .textContent =
+            formatCurrency(expense);
+
+
+        document.getElementById("balanceValue")
+            .textContent =
+            formatCurrency(balance);
+
+
+        // Deixa o saldo vermelho quando estiver negativo
+        const balanceElement =
+            document.getElementById("balanceValue");
+
+        balanceElement.style.color =
+            balance < 0
+                ? "var(--danger)"
+                : "var(--primary)";
+
+    }
+
+
+    /* =============================================================
+       RENDERIZAÇÃO DAS TRANSAÇÕES
+    ============================================================= */
+
+    function renderTransactions() {
+
+        const search =
+            searchInput.value
+                .trim()
+                .toLowerCase();
+
+        const category =
+            filterCategory.value;
+
+
+        const filtered =
+            transactions.filter(transaction => {
+
+                const matchesSearch =
+                    transaction.description
+                        .toLowerCase()
+                        .includes(search);
+
+                const matchesCategory =
+                    category === "all" ||
+                    transaction.category === category;
+
+                return (
+                    matchesSearch &&
+                    matchesCategory
+                );
+
+            });
+
+
+        document.getElementById("transactionCount")
+            .textContent =
+            `${filtered.length} ${
+                filtered.length === 1
+                    ? "transação"
+                    : "transações"
+            }`;
+
+
+        if (filtered.length === 0) {
+
+            transactionsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <strong>Nenhuma transação encontrada</strong>
+                    <span>
+                        ${
+                            transactions.length === 0
+                                ? "Adicione sua primeira transação."
+                                : "Tente alterar os filtros."
+                        }
+                    </span>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        transactionsContainer.innerHTML = `
+
+            <table class="transactions-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Categoria</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th></th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    ${filtered
+                        .map(createTransactionRow)
+                        .join("")}
+
+                </tbody>
+
+            </table>
+        `;
+
+
+        // Adiciona eventos aos botões de excluir
+        document
+            .querySelectorAll(".delete-btn")
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+                        deleteTransaction(
+                            button.dataset.id
+                        );
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* =============================================================
+       LINHA DA TABELA
+    ============================================================= */
+
+    function createTransactionRow(transaction) {
+
+        const isEntry =
+            transaction.type === "entry";
+
+
+        const formattedDate =
+            formatDate(transaction.date);
+
+
+        const formattedAmount =
+            formatCurrency(transaction.amount);
+
+
+        return `
+
+            <tr>
+
+                <td>
+                    ${formattedDate}
+                </td>
+
+                <td>
+                    <span class="description">
+                        ${escapeHTML(
+                            transaction.description
+                        )}
+                    </span>
+                </td>
+
+                <td>
+                    <span class="category">
+                        ${escapeHTML(
+                            transaction.category
+                        )}
+                    </span>
+                </td>
+
+                <td>
+
+                    <span
+                        class="
+                            transaction-type
+                            ${isEntry ? "entry" : "expense"}
+                        "
+                    >
+
+                        ${isEntry ? "↗" : "↘"}
+
+                        ${isEntry ? "Entrada" : "Saída"}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <span
+                        class="
+                            transaction-value
+                            ${isEntry ? "entry" : "expense"}
+                        "
+                    >
+                        ${isEntry ? "+" : "-"}
+                        ${formattedAmount}
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <button
+                        class="delete-btn"
+                        data-id="${transaction.id}"
+                        title="Excluir transação"
+                        aria-label="Excluir transação"
+                    >
+                        🗑
+                    </button>
+
+                </td>
+
+            </tr>
+        `;
+
+    }
+
+
+    /* =============================================================
+       GRÁFICOS
+    ============================================================= */
+
+    function renderCharts() {
+
+        renderIncomeExpenseChart();
+
+        renderCategoryChart();
+
+    }
+
+
+    /* =============================================================
+       GRÁFICO ENTRADAS X SAÍDAS
+    ============================================================= */
+
+    function renderIncomeExpenseChart() {
+
+        let income = 0;
+        let expense = 0;
+
+
+        transactions.forEach(transaction => {
+
+            if (transaction.type === "entry") {
+
+                income += Number(transaction.amount);
+
+            } else {
+
+                expense += Number(transaction.amount);
+
+            }
+
+        });
+
+
+        const canvas =
+            document.getElementById(
+                "incomeExpenseChart"
+            );
+
+
+        if (incomeExpenseChart) {
+
+            incomeExpenseChart.destroy();
+
+        }
+
+
+        incomeExpenseChart =
+            new Chart(canvas, {
+
+                type: "bar",
+
+                data: {
+
+                    labels: [
+                        "Entradas",
+                        "Saídas"
+                    ],
+
+                    datasets: [
+
+                        {
+                            label: "Valor",
+
+                            data: [
+                                income,
+                                expense
+                            ],
+
+                            backgroundColor: [
+                                "#10B981",
+                                "#EF4444"
+                            ],
+
+                            borderRadius: 8,
+
+                            borderSkipped: false
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: context => {
+
+                                    return (
+                                        " " +
+                                        formatCurrency(
+                                            context.raw
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true,
+
+                            ticks: {
+
+                                callback: value =>
+                                    formatCurrency(value)
+
+                            },
+
+                            grid: {
+                                color: "#f0f1f3"
+                            }
+
+                        },
+
+                        x: {
+
+                            grid: {
+                                display: false
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+    }
+
+
+    /* =============================================================
+       GRÁFICO DE DESPESAS POR CATEGORIA
+    ============================================================= */
+
+    function renderCategoryChart() {
+
+        const categoryTotals = {};
+
+
+        transactions
+            .filter(
+                transaction =>
+                    transaction.type === "expense"
+            )
+            .forEach(transaction => {
+
+                if (!categoryTotals[
+                    transaction.category
+                ]) {
+
+                    categoryTotals[
+                        transaction.category
+                    ] = 0;
+
+                }
+
+                categoryTotals[
+                    transaction.category
+                ] += Number(transaction.amount);
+
+            });
+
+
+        const labels =
+            Object.keys(categoryTotals);
+
+
+        const values =
+            Object.values(categoryTotals);
+
+
+        const canvas =
+            document.getElementById(
+                "categoryChart"
+            );
+
+
+        if (categoryChart) {
+
+            categoryChart.destroy();
+
+        }
+
+
+        categoryChart =
+            new Chart(canvas, {
+
+                type: "doughnut",
+
+                data: {
+
+                    labels,
+
+                    datasets: [
+
+                        {
+
+                            data: values,
+
+                            backgroundColor: [
+
+                                "#6366F1",
+                                "#10B981",
+                                "#F59E0B",
+                                "#EF4444",
+                                "#8B5CF6",
+                                "#06B6D4",
+                                "#EC4899",
+                                "#84CC16",
+                                "#64748B"
+
+                            ],
+
+                            borderWidth: 3,
+
+                            borderColor: "#ffffff"
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    cutout: "62%",
+
+                    plugins: {
+
+                        legend: {
+
+                            position: "bottom",
+
+                            labels: {
+
+                                usePointStyle: true,
+
+                                padding: 15,
+
+                                font: {
+                                    size: 11
+                                }
+
+                            }
+
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label: context => {
+
+                                    const value =
+                                        context.raw;
+
+                                    return (
+                                        " " +
+                                        context.label +
+                                        ": " +
+                                        formatCurrency(
+                                            value
+                                        )
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+    }
+
+
+    /* =============================================================
+       RESUMO TEXTUAL
+    ============================================================= */
+
+    function updateSummaryMessage() {
+
+        const element =
+            document.getElementById(
+                "summaryMessage"
+            );
+
+
+        if (transactions.length === 0) {
+
+            element.innerHTML = `
+                <div>
+                    <div style="font-size:40px;margin-bottom:12px;">
+                        📊
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            color:#111827;
+                            margin-bottom:6px;
+                        "
+                    >
+                        Seu resumo aparecerá aqui
+                    </strong>
+
+                    Adicione receitas e despesas
+                    para começar a acompanhar
+                    seu orçamento.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        let income = 0;
+        let expense = 0;
+
+
+        transactions.forEach(transaction => {
+
+            if (transaction.type === "entry") {
+
+                income += Number(transaction.amount);
+
+            } else {
+
+                expense += Number(transaction.amount);
+
+            }
+
+        });
+
+
+        const balance =
+            income - expense;
+
+
+        let message;
+
+
+        if (balance > 0) {
+
+            message = `
+                <div>
+                    <div style="font-size:40px;margin-bottom:12px;">
+                        🎉
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            color:#10b981;
+                            margin-bottom:8px;
+                        "
+                    >
+                        Saldo positivo!
+                    </strong>
+
+                    Você possui
+                    <strong>
+                        ${formatCurrency(balance)}
+                    </strong>
+                    disponível após suas despesas.
+                </div>
+            `;
+
+        } else if (balance < 0) {
+
+            message = `
+                <div>
+                    <div style="font-size:40px;margin-bottom:12px;">
+                        ⚠️
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            color:#ef4444;
+                            margin-bottom:8px;
+                        "
+                    >
+                        Atenção ao orçamento
+                    </strong>
+
+                    Suas despesas superaram suas
+                    receitas em
+                    <strong>
+                        ${formatCurrency(
+                            Math.abs(balance)
+                        )}
+                    </strong>.
+                </div>
+            `;
+
+        } else {
+
+            message = `
+                <div>
+                    <div style="font-size:40px;margin-bottom:12px;">
+                        ⚖️
+                    </div>
+
+                    <strong
+                        style="
+                            display:block;
+                            color:#6366f1;
+                            margin-bottom:8px;
+                        "
+                    >
+                        Orçamento equilibrado
+                    </strong>
+
+                    Suas receitas e despesas
+                    estão iguais.
+                </div>
+            `;
+
+        }
+
+
+        element.innerHTML = message;
+
+    }
+
+
+    /* =============================================================
+       LOCAL STORAGE
+    ============================================================= */
+
+    function saveTransactions() {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(transactions)
+        );
+
+    }
+
+
+    function loadTransactions() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!saved) {
+                return [];
+            }
+
+
+            const parsed =
+                JSON.parse(saved);
+
+
+            return Array.isArray(parsed)
+                ? parsed
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Erro ao carregar transações:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    /* =============================================================
+       UTILITÁRIOS
+    ============================================================= */
+
+    function formatCurrency(value) {
+
+        return currencyFormatter.format(
+            Number(value) || 0
+        );
+
+    }
+
+
+    function formatDate(dateString) {
+
+        if (!dateString) {
+            return "-";
+        }
+
+
+        const [year, month, day] =
+            dateString.split("-");
+
+
+        return `${day}/${month}/${year}`;
+
+    }
+
+
+    function getTodayISO() {
+
+        const date = new Date();
+
+
+        const year =
+            date.getFullYear();
+
+
+        const month =
+            String(
+                date.getMonth() + 1
+            ).padStart(2, "0");
+
+
+        const day =
+            String(
+                date.getDate()
+            ).padStart(2, "0");
+
+
+        return `${year}-${month}-${day}`;
+
+    }
+
+
+    function updateCurrentDate() {
+
+        const element =
+            document.getElementById(
+                "currentDate"
+            );
+
+
+        const date =
+            new Date();
+
+
+        element.textContent =
+            date.toLocaleDateString(
+                "pt-BR",
+                {
+                    weekday: "long",
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+    }
+
+
+    function showToast(message) {
+
+        const toast =
+            document.getElementById("toast");
+
+
+        toast.textContent = message;
+
+        toast.classList.add("show");
+
+
+        setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 2500);
+
+    }
+
+
+    /* =============================================================
+       SEGURANÇA
+       Evita inserir HTML diretamente vindo da descrição.
+    ============================================================= */
+
+    function escapeHTML(value) {
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+</script>
+
+</body>
+</html>
+```
